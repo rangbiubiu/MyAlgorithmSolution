@@ -1903,21 +1903,58 @@ public:
 
 ==:star: **核心思路：完全背包  **:star:==
 
+1. dp定义：dp[i]表示长度为 i 的字符串s[0,i)能否被wordDict中的单词完整拆分
+    - 转换成背包问题就是，容量为i的背包是否能被wordDict中的物品装满
+2. dp递推公式: 如果`子串s[j, i) == 单词`, 且`dp[j]=true`,则dp[i]=true
+3. dp数组初始化：`dp[0] = true; ` 为什么？？？
+    - 因为背包刚好被一个物品装满时，剩下容量为0，根据dp公式，dp[0]当然要为true
+4. 遍历
+
+#### 法一
+
+一开始就将所有wordDict中的单词存到uset中，在内层for中遍历子串起点：`for (int j = 0; j < i; ++j)`
+
+```cpp
+bool wordBreak(string s, vector<string>& wordDict) {
+    vector<bool> dp(s.size() + 1);
+    
+    dp[0] = true;
+
+    unordered_set<string> uset;
+    for (auto& str : wordDict) {
+        uset.insert(str);
+    }
+    for (int i = 1; i <= s.size(); ++i) {
+        for (int j = 0; j < i; ++j) {
+            // 判断当前子串s[j,i)是否==字典中的某个单词，
+            // 如果是，则判断剩余容量=i-(i-1-j+1)=i-(i-j)=j, 即s[0,j)是否能被装满
+            string partOfLast = s.substr(j, i - j);
+            if (dp[j] && uset.count(partOfLast)) {
+                dp[i] = true;
+            }
+        }
+    }
+    return dp[s.size()];
+}
+```
+
+#### 法二
+
+内层for通过遍历wordDict中的单词判断s[0,i)是否能被装满：`for (auto& str : wordDict)`
+
 ```c++
 bool wordBreak(string s, vector<string>& wordDict) {
-    // 1.dp[j]表示长度为i的字符串能否拆成一个或多个wordDict中的单词
-    vector<int> dp(s.size() + 1, false);
-    // 2.递推公式: 对于dp[i],遍历单词，如果单词==子串s[j, i],且dp[j]=true,则dp[i]=true
-    // 3.初始化: 由于i<len就不会执行递推公式，因此dp[i]是原来默认的，默认应为false，除了i=0之外
-    dp[0] = true;
-    // 4.遍历:一定是先遍历背包，再遍历物品(求的是排列)
-    for (int i = 1; i <= s.size(); ++i) {     //遍历背包
-        for (const string& str : wordDict) {  //遍历物品
-            int len = str.size();
-            // 只有单词长度<=子串长度才能接着判断
-            if (len <= i) {
-                string tmp = s.substr(i - len, len);
-                dp[i] = (dp[i - len] && str == tmp) || dp[i];
+    vector<bool> dp(s.size() + 1);
+    
+    dp[0] = true; 
+    
+    for (int i = 1; i <= s.size(); ++i) {
+        for (auto& str : wordDict) {
+            int wordLen = str.size();  
+            if (i >= wordLen) {
+                string partOfLast = s.substr(i - wordLen, wordLen);  
+                dp[i] = (str == partOfLast && dp[i - wordLen]) || dp[i];
+                // 装str || 不装  （不装当前物品 拿其它物品装能装满也是true） 
             }
         }
     }
