@@ -2948,14 +2948,13 @@ int maxProduct(vector<int>& nums) {
 
 ==:star: **核心思路：dp   **:star:==
 
+关键是dp定义，然后是各种边界判断。
+
 ```c++
 bool canJump(vector<int>& nums) {
-    if (nums.size() == 1) {
+    if (nums.size() <= 1) {
         return true;
-    }
-    if (nums[0] == 0) {
-        return false;
-    }
+    } 
     // 1.dp[i]: 从[0,i]的任意一点处出发，最远可以到哪
     vector<int> dp(nums.size());
     // 2.递推公式: dp[i] = max(dp[i - 1], i + nums[i]);
@@ -2980,18 +2979,13 @@ bool canJump(vector<int>& nums) {
 
 ```c++
 bool canJump(vector<int>& nums) {
-    if (nums.size() == 1) {
-        return true;
-    }
-    if (nums[0] == 0) {
-        return false;
-    }
-    int dp = nums[0];
-    for (int i = 1; i < nums.size(); ++i) {
+    int dp = nums[0]; //dp表示当前位置能跳到的最远的位置
+    for (int i = 0; i < nums.size(); ++i) {
         if (dp < i) {
+            // 说明当前位置都到不了
             return false;
         }
-        dp = max(dp, i + nums[i]);
+        dp = max(dp, nums[i] + i);
         if (dp >= nums.size() - 1) {
             return true;
         }
