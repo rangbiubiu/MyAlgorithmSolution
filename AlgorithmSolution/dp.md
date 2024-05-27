@@ -55,7 +55,7 @@
 # 子串子序列问题
 
 
-## :car:[1143. 最长公共子序列](https://leetcode.cn/problems/longest-common-subsequence/)
+## :fire:[1143. 最长公共子序列](https://leetcode.cn/problems/longest-common-subsequence/)
 
 ### **题意**
 
@@ -114,6 +114,7 @@ public:
         int n = s2.size() + 1;
         // dp[i][j]表示s1[0,i-1]和s2[0,j-1]的最长公共子序列的长度
         vector<vector<int>> dp(m, vector<int>(n));
+        // dp数组初始化：i=0和j=0时都为0，不用单独初始化
         for (int i = 1; i < m; i++) {
             for (int j = 1; j < n; j++) {
                 if (s1[i - 1]  == s2[j - 1]) {
@@ -138,11 +139,9 @@ public:
         int m = s1.size() + 1;
         int n = s2.size() + 1;
         vector<int> dp(n);
-        // 因为要用到 左上dp[i - 1][j - 1] / 左dp[i][j - 1] / 上dp[i - 1][j] 的值, 
-        // 因此需要保存左上的值
+        // 要用到 左上dp[i - 1][j - 1]，左dp[i][j - 1]，上dp[i - 1][j]的值
         for (int i = 1; i < m; ++i) {
-            // leftUp用于保存dp[i-1][j-1]，每行刚开始的时候都是0
-            int leftUp = 0; 
+            int leftUp = 0; //初始化leftUp，每行刚开始的时候都是0
             for (int j = 1; j < n; ++j) {
                 // 暂存未刷新的dp[i-1][j]作为下一次循环(dp[j+1])的左上角值
                 int tmp = dp[j]; 
@@ -284,19 +283,24 @@ int longestValidParentheses(string s) {
 
 **:key:  key：**
 
-- 当前"连续和""为负数的时候立刻放弃，从下一个元素重新计算"连续和"，因为负数加上下一个元素"连续和"只会越来越小。![image-20240131143607389](https://cdn.jsdelivr.net/gh/808bass666/picBed@main/202401311436522.png)
+- 当前"连续和"为负数的时候立刻放弃，从下一个元素重新计算连续和，因为负数加上下一个元素"连续和"只会越来越小。![image-20240131143607389](https://cdn.jsdelivr.net/gh/808bass666/picBed@main/202401311436522.png)
 
 #### 代码
 
 ```c++
 int maxSubArray(vector<int>& nums) {
+    // 贪心
+    // 当前"子数组和"为负数的时候立刻放弃，从下一个元素重新计算和，
+    // 因为负数加上下一个元素"子数组和"只会越来越小。
+    // 但是注意!!!!!如果最大子数组和都是负数, 那么就不能放弃!
+    int maxSum = 0xc0c0c0c0; 
     int sum = 0;
-    int maxSum = nums[0];
-    for (int i = 0; i < nums.size(); ++i) {
-        sum += nums[i];
-        // 下面这两行的顺序不能换，sum置0必须放在后头
-        maxSum = max(sum, maxSum);
-        if (sum < 0) sum = 0; //重新计算"连续和"
+    for (auto& num : nums) {
+        sum += num;
+        maxSum = max(maxSum, sum);
+        if (sum < 0) {
+            sum = 0;
+        } 
     }
     return maxSum;
 }
@@ -324,7 +328,7 @@ int maxSubArray(vector<int>& nums) {
     dp[0] = nums[0];
     //4.遍历
     for (int i = 1; i < nums.size(); ++i) {
-        dp[i] = max(dp[i - 1] + nums[i], nums[i]);
+        dp[i] = nums[i] + max(dp[i - 1], 0);
         maxSum = max(dp[i], maxSum); 
     }
     return maxSum;
@@ -419,6 +423,67 @@ public:
 ### 参考题解
 
 1. [liweiwei佬的gif图把过程模拟的很清晰](https://leetcode.cn/problems/longest-increasing-subsequence/solutions/7196/dong-tai-gui-hua-er-fen-cha-zhao-tan-xin-suan-fa-p)
+
+### 总
+
+```cpp
+int findFirst(vector<int>& nums, int left, int right, int target) {
+    while (left < right) {
+        int mid = (left + right) / 2;
+        if (nums[mid] >= target) {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+    return left;//因为一定找得到
+}
+int lengthOfLIS(vector<int>& nums) {
+    int n = nums.size();
+/*  ========= 法一、贪心+前缀和 =========
+    用一个cell数组，我们用这个数组的长度来代表最长递增上升子序列的长度（cell未必是真实的最长上升子序列，但长度是对的）
+    先将nums[0]加到cell数组中，然后遍历nums，
+    如果当前遍历元素nums[i]>cell.back()，则直接将nums[i] push_back到cell
+    否则二分找到cell中第一个比它大的元素，将其覆盖.
+    （这样，虽然最长递增子序列的长度不变，但是它之后能容纳更多的元素）
+    时间复杂度：O(nlogn), 空间复杂度：O(n)
+*/
+    vector<int> cell;
+    cell.emplace_back(nums[0]);
+    for (int i = 0; i < n; ++i) {
+        if (nums[i] > cell.back()) {
+            cell.emplace_back(nums[i]);
+        } else {
+            // 若自己实现:
+            int index = findFirst(cell, 0, cell.size() - 1, nums[i]);
+            // 也可以用lower_bound库函数，注意它的参数以及返回值:
+            // int index = lower_bound(cell.begin(), cell.end(), nums[i]) - cell.begin();
+            cell[index] = nums[i];
+        }
+    }
+    return cell.size();
+
+/*  ========= 法二、dp =========
+    时间复杂度：O(n^2), 空间复杂度：O(n)
+*/
+    int maxlen = 1;
+    // 1. dp定义：dp[i]表示由下标i结尾的最长递增子序列的长度
+    vector<int> dp(n, 1);
+    // 3. dp初始化: 定义即初始化了
+    // 4. 遍历
+    for (int i = 1; i < n; ++i) {
+        for (int j = 0; j < i; j++) {
+            if (nums[i] > nums[j]) {
+                dp[i] = max(dp[i], dp[j] + 1); 
+            }
+        }
+        maxlen = max(maxlen, dp[i]);
+    }
+    return maxlen;
+}
+```
+
+
 
 ### 法一
 
@@ -1029,29 +1094,39 @@ int extend(const string& s, int i, int j, int n) { //以s[i],s[j]为中心向两
 原始版本：
 
 ```c++
-string longestPalindrome(string s) {
-    int start = 0;
-    int maxLen = 0;
-    // dp[i][j]表示子串[i,j]是否是回文子串 
-    vector<vector<int>> dp(s.size(), vector<int>(s.size()));
-    // 递推关系：若中间的区间是回文串，那么如果在其两端都再包含一个相同字符进来，则这个更大的区间也是回文串
-    // 因为dp[i + 1][j - 1]是左下角的值,所以要从下往上从左往右遍历
-    for (int i = s.size() - 1; i >= 0; --i) {
-        // j要从i开始!
-        for (int j = i; j < s.size(); ++j) {
-            // 区间[i,j]只有一个或两个元素时,若s[i]==s[j]则dp[i][j]就一定为true
-            // 区间[i,j]元素个数超过两个时,dp[i][j]要为true,那除了s[i]==s[j]之外还需要dp[i+1][j-1]=true
-            if (s[i] == s[j] &&  (j - i + 1 <= 2 || dp[i + 1][j - 1])) { 
-                dp[i][j] = true;
-                if (j - i + 1 > maxLen) {
-                    maxLen = j - i + 1;
-                    start = i;
-                }
+class Solution {
+public:
+    string longestPalindrome(string s) {
+        int start = 0;
+        int maxLen = 1;
+        int n = s.size();
+        // 1.dp定义：dp[i,j]表示子串s[i,j]是否回文
+        vector<vector<bool>> dp(n, vector<bool>(n));
+        // 2.递推关系：若中间的区间是回文串，那么如果在其两端都再包含一个相同字符进来，则这个更大的区间也是回文串
+        // 如果s[i] == s[j], s[i, j]是否回文
+        // - 如果i==j, 一定回文
+        // - 如果i==j-1, 也回文
+        // - 如果i<j-1, 那么还需要dp[i+1][j-1]为true, 才回文
+
+        // 3.dp初始化: 可以放在for逻辑中
+        // 4.遍历: 因为要用到dp[i+1][j-1]左下角的值，因此要从下往上从左往右遍历
+        for (int i = s.size(); i >= 0; --i) {
+            for (int j = i; j < s.size(); ++j) {
+                if (s[i] == s[j]) {
+                    if (i == j || i == j - 1 || (i < j - 1 && dp[i + 1][j - 1])) {
+                    // 或者写成 if (j - i + 1 <= 2 || dp[i + 1][j - 1]) { 
+                        dp[i][j] = true;
+                        if (j - i + 1 > maxLen) {
+                            start = i;
+                            maxLen = j - i + 1;
+                        } 
+                    }
+                }            
             }
         }
+        return s.substr(start, maxLen);
     }
-    return s.substr(start, maxLen);
-}
+};
 ```
 
 状态压缩：
@@ -1087,6 +1162,13 @@ string longestPalindrome(string s) {
 ### 法二
 
 ==:star: **核心思路：左右双指针  中心扩散法  **:star:==
+
+回文子串分为两种情况：以一个中心点回文、以两个中心点回文
+
+我们遍历回文中心点，对于每个或每两个回文中心点，我们从中心点往两边扩散，具体如下：
+
+- 用left和right双指针分别指向回文子串的两端，判断它们指向的元素是否相同，
+- 如果相同就让left--,right++，如果不同就退出循环
 
 ```c++
 class Solution {
@@ -2469,6 +2551,12 @@ public:
                 if (word1[i - 1] == word2[j - 1]) {
                     dp[i][j] = dp[i - 1][j - 1];
                 } else {
+                // 这里最好自己在脑子里面画出一个二维dp数组的图，或者手动画出来，不要凭空想
+                /*
+                      h  o  r  
+                    r    2  2
+                    o    1  2
+                */
                     dp[i][j] = 1 + min(dp[i - 1][j - 1], min(dp[i - 1][j], dp[i][j - 1]));
                 }
             }
@@ -2502,22 +2590,17 @@ public:
         for (int j = 0; j < n; ++j) {
             dp[j] = j;
         }
-        for (int i = 1; i < m; i++) {
-            // 初始化每行左上角的值leftUp为上一层的dp[0]
-            int leftUp = dp[0];
-            // 刷新dp[0]
-            dp[0] = i;
+        for (int i = 1; i < m; i++) { 
+            int leftUp = dp[0];//初始化leftUp
+            dp[0] = i;//刷新dp[0]
             for (int j = 1; j < n; j++) {
-                // 暂存未刷新的dp[i-1][j]作为下一次循环(dp[j+1])的左上角值
-                int tmp = dp[j];
-                // 该次循环后dp[j]被刷新, 从原来的dp[i-1][j]刷新为了dp[i][j]
+                int tmp = dp[j];//保存当前格子刷新前的值，作为下一层内存循环的leftUp
                 if (word1[i - 1] == word2[j - 1]) {
                     dp[j] = leftUp;
                 } else {
                     dp[j] = 1 + min(leftUp, min(dp[j], dp[j - 1]));
                 }
-                // 更新左上角的值
-                leftUp = tmp;
+                leftUp = tmp;// 更新左上角的值
             }
         }
         return dp[n - 1];
