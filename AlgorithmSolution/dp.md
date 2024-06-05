@@ -2040,6 +2040,8 @@ int main() {
 
 #### dp.size()初始化为n+1
 
+关键是第二步初始化。
+
 ```c++
 class Solution {
 public:
@@ -2050,7 +2052,7 @@ public:
         // 初始化：
         // i=0时，dp[0][j]: use [空集]  to get amount = j, min number=0x3f3f3f3f
         // j=0时，dp[i][0]: use [0,i-1] to get amount = 0, min number=0
-        for (int i = 0; i <= n; i++) {
+        for (int i = 0; i <= n; i++) { 
             dp[i][0] = 0;
         }
         // 用到左上和上的值，因此从左往右从上往下遍历
@@ -2199,6 +2201,105 @@ public:
     }
 };
 ```
+
+## :fire:[518. 零钱兑换 II](https://leetcode.cn/problems/coin-change-ii/)
+
+### 题意
+
+给你一个整数数组 `coins` 表示不同面额的硬币，另给一个整数 `amount` 表示总金额。
+
+请你计算并返回可以凑成总金额的硬币组合数。如果任何硬币组合都无法凑出总金额，返回 `0` 。
+
+假设每一种面额的硬币有无限个。 
+
+题目数据保证结果符合 32 位带符号整数。
+
+**示例 1：**
+
+```
+输入：amount = 5, coins = [1, 2, 5]
+输出：4
+解释：有四种方式可以凑成总金额：
+5=5
+5=2+2+1
+5=2+1+1+1
+5=1+1+1+1+1
+```
+
+**示例 2：**
+
+```
+输入：amount = 3, coins = [2]
+输出：0
+解释：只用面额 2 的硬币不能凑成总金额 3 。
+```
+
+**示例 3：**
+
+```
+输入：amount = 10, coins = [10] 
+输出：1
+```
+
+**提示：**
+
+- `1 <= coins.length <= 300`
+- `1 <= coins[i] <= 5000`
+- `coins` 中的所有值 **互不相同**
+- `0 <= amount <= 5000`
+
+### 思路
+
+==:star: **核心思路： 完全背包  **:star:==
+
+**:key:  key：**
+
+- 关键是dp数组初始化，当j=0时需要初始化为1。
+
+### 代码
+
+#### 二维
+
+```c++
+int change(int amount, vector<int>& coins) {
+    int n = coins.size();
+    // dp[i][j]表示用coins[0,i-1]凑成j, 有多少种组合
+    vector<vector<int>> dp(n + 1, vector<int>(amount + 1));
+    // dp数组初始化: j=0时
+    for (int i = 0; i <= n; ++i) {
+        dp[i][0] = 1;
+    }
+    // 遍历: 由于求的是组合，因此嵌套顺序没有讲究
+    for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j <= amount; ++j) {
+            dp[i][j] += dp[i - 1][j]; //这次不选coins[i-1]
+            if (j >= coins[i - 1]) {
+                dp[i][j] += dp[i][j - coins[i - 1]]; //这次选
+            }
+        }
+    }
+    return dp[n][amount];
+}
+```
+
+#### 一维
+
+```c++
+int change(int amount, vector<int>& coins) {
+    vector<int> dp(amount + 1);
+    // dp数组初始化: j=0时
+    dp[0] = 1;
+    // 遍历: 由于要用到刷新后左、刷新前上的值，因此是从上往下从左往右遍历
+    for (int i = 1; i <= coins.size(); ++i) {
+        for (int j = coins[i - 1]; j <= amount; ++j) {
+            dp[j] += dp[j - coins[i - 1]];  
+        }
+    }
+    return dp[amount];
+}
+```
+
+ 
 
 ## :fire:[139. 单词拆分](https://leetcode.cn/problems/word-break/)
 
