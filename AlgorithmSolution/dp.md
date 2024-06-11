@@ -77,7 +77,7 @@ for (int j = coins[i - 1]; j <= amount; ++j) {
 
 ## :fire:[70. 爬楼梯](https://leetcode.cn/problems/climbing-stairs/)
 
-### **题意**
+### 题意
 
 假设你正在爬楼梯。需要 `n` 阶你才能到达楼顶。
 
