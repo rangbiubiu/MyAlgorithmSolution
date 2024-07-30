@@ -314,7 +314,7 @@ int climbStairs(int n, int m) {
 
 ## :fire:[1143. 最长公共子序列](https://leetcode.cn/problems/longest-common-subsequence/)
 
-### **题意**
+### 题意
 
 给定两个字符串 `text1` 和 `text2`，返回这两个字符串的最长 **公共子序列** 的长度。如果不存在 **公共子序列** ，返回 `0` 。
 
@@ -423,7 +423,99 @@ public:
 
 - 空间复杂度：O(m*n) / O(1)
 
+## :fire:[718. 最长重复子数组](https://leetcode.cn/problems/maximum-length-of-repeated-subarray/)
 
+### 题意
+
+给两个整数数组 `nums1` 和 `nums2` ，返回 *两个数组中 公共的 、长度最长的子数组的长度* 。
+
+ **示例 1：**
+
+```
+输入：nums1 = [1,2,3,2,1], nums2 = [3,2,1,4,7]
+输出：3
+解释：长度最长的公共子数组是 [3,2,1] 。
+```
+
+**示例 2：**
+
+```
+输入：nums1 = [0,0,0,0,0], nums2 = [0,0,0,0,0]
+输出：5
+```
+
+ **提示：**
+
+- `1 <= nums1.length, nums2.length <= 1000`
+- `0 <= nums1[i], nums2[i] <= 100`
+
+### 参考题解
+
+1. [滑动窗口解法可以参考的题解，看上去还不错](https://leetcode.cn/problems/maximum-length-of-repeated-subarray/solutions/28583/wu-li-jie-fa-by-stg-2)
+
+### 法一
+
+==:star: **核心思路：dp   **:star:==
+
+和1143不同，1143求的是公共子序列（不要求连续），本题是公共子数组（要求连续）。
+
+因此这里计算dp\[i][j]就只需要看nums1[i-1]和nums2[j-1]这两个当前位置是否相等，如果相等则dp\[i][j]就看左上格子dp\[i-1][j-1]为多少。
+
+也就是说，本题同1143不同，本题最多只需要关注一个格子（左上），左、上两个格子都不需要关注。
+
+```c++
+int findLength(vector<int>& nums1, vector<int>& nums2) {
+    // dp定义: dp[i][j]表示以i-1下标结尾的nums1和以j-1下标结尾的nums2的最长公共子数组的长度
+    // 这样定义的好处是不需要单独对dp数组进行初始化，而可以合并到遍历逻辑中
+    int m = nums1.size();
+    int n = nums2.size();
+    vector<vector<int>> dp(m + 1, vector<int>(n + 1));
+    /* 递推公式
+           1, 2, 3, 2, 1
+        3   
+        2
+        1
+        4
+        7
+    */ 
+    int maxLen = 0;
+    // 遍历
+    for (int i = 1; i <= m; ++i) {
+        for (int j = 1; j <= n; ++j) {
+            if (nums1[i - 1] == nums2[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+                maxLen = max(maxLen, dp[i][j]);
+            }
+        }
+    }
+    return maxLen;
+}
+```
+
+状态压缩
+
+```cpp
+int findLength(vector<int>& nums1, vector<int>& nums2) {
+    int m = nums1.size();
+    int n = nums2.size();
+    vector<int> dp(n + 1); 
+    int maxLen = 0;
+    // 需要左上格子的值, 即左边格子更新前的值(从右往左更新即保证了遍历到dp[j]时dp[j-1]还未更新，即dp[j-1]除了是左边的值之外，还是上一层的值，因此要从右往左从上往下遍历
+    for (int i = 1; i <= m; ++i) {
+        for (int j = n; j >= 1; --j) {
+            dp[j] = nums1[i - 1] == nums2[j - 1] ? dp[j - 1] + 1 : 0; // 注意这里不相等的时候一样要更新值（赋0）
+            maxLen = max(maxLen, dp[j]);
+        }
+    }
+    return maxLen;
+}
+```
+
+### 法二
+
+==:star: **核心思路：滑动窗口   **:star:==
+
+待补充。。。
 
 ## :fire:[32. 最长有效括号](https://leetcode.cn/problems/longest-valid-parentheses/)
 
@@ -499,7 +591,7 @@ int longestValidParentheses(string s) {
 
 ## :fire:[53. 最大子数组和](https://leetcode.cn/problems/maximum-subarray/)
 
-### **题意**
+### 题意
 
 给你一个整数数组 `nums` ，请你找出一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。
 
@@ -662,9 +754,9 @@ public:
 
 
 
-## [:fire: 300. 最长递增子序列](https://leetcode.cn/problems/longest-increasing-subsequence/)
+## [:fire:300. 最长递增子序列](https://leetcode.cn/problems/longest-increasing-subsequence/)
 
-### **题意**
+### 题意
 
 :  给你一个整数数组 `nums` ，找到其中最长**严格**递增**子序列**的长度。
 
@@ -859,6 +951,79 @@ public:
 - 时间复杂度：O(nlogn)
 
 - 空间复杂度：O(n)
+
+## :fire:[152. 乘积最大子数组](https://leetcode.cn/problems/maximum-product-subarray/)
+
+### 题意
+
+给你一个整数数组 `nums` ，请你找出数组中乘积最大的非空连续子数组（该子数组中至少包含一个数字），并返回该子数组所对应的乘积。
+
+测试用例的答案是一个 **32-位** 整数。
+
+**示例 1:**
+
+```
+输入: nums = [2,3,-2,4]
+输出: 6
+解释: 子数组 [2,3] 有最大乘积 6。
+```
+
+**示例 2:**
+
+```
+输入: nums = [-2,0,-1]
+输出: 0
+解释: 结果不能为 2, 因为 [-2,-1] 不是子数组。
+```
+
+**提示:**
+
+- `1 <= nums.length <= 2 * 104`
+- `-10 <= nums[i] <= 10`
+- `nums` 的任何前缀或后缀的乘积都 **保证** 是一个 **32-位** 整数
+
+### 代码
+
+由于存在负数，那么会导致最大的变最小的，最小的变最大的。因此还需要维护一个最小值 
+
+```c++
+int maxProduct(vector<int>& nums) {
+    int ans = nums[0];
+    // dp定义：dp[i][0]、dp[i][1]分别表示以下标i结尾的连续子数组的最大乘积、最小乘积
+    vector<vector<int>> dp(nums.size(), vector<int>(2));
+    // 初始化：
+    dp[0][0] = nums[0];
+    dp[0][1] = nums[0];
+    // 遍历：
+    for (int i = 1; i < nums.size(); ++i) {
+        dp[i][0] = max({nums[i], dp[i - 1][0] * nums[i], dp[i - 1][1] * nums[i]});
+        dp[i][1] = min({nums[i], dp[i - 1][1] * nums[i], dp[i - 1][0] * nums[i]});
+        ans = max(ans, dp[i][0]);
+    }
+    return ans;
+}
+```
+
+优化空间
+
+```c++
+int maxProduct(vector<int>& nums) {
+    int ans = nums[0];
+    // 分别表示以下标i结尾的连续子数组的最大乘积、最小乘积 
+    int curMax = nums[0];
+    int curMin = nums[0];
+    for (int i = 1; i < nums.size(); ++i) {
+        int preMax = curMax;
+        // 由于在计算curMin之前会更新curMax，而我们想要的是旧值，因此要暂存curMax
+        curMax = max({nums[i], curMax * nums[i], curMin * nums[i]});
+        curMin = min({nums[i], curMin * nums[i], preMax * nums[i]});
+        ans = max(ans, curMax);
+    }
+    return ans;
+}
+```
+
+
 
 ## :fire:[32. 最长有效括号](https://leetcode.cn/problems/longest-valid-parentheses/)
 
@@ -1076,109 +1241,13 @@ int longestValidParentheses(string s) {
 
 - 空间复杂度：O(1)
 
-## :fire:[128. 最长连续序列](https://leetcode.cn/problems/longest-consecutive-sequence/)
 
-### 题意
-
-给定一个未排序的整数数组 `nums` ，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。
-
-请你设计并实现时间复杂度为 `O(n)` 的算法解决此问题。
-
-**示例 1：**
-
-```
-输入：nums = [100,4,200,1,3,2]
-输出：4
-解释：最长数字连续序列是 [1, 2, 3, 4]。它的长度为 4。
-```
-
-**示例 2：**
-
-```
-输入：nums = [0,3,7,2,5,8,4,6,0,1]
-输出：9
-```
-
-**提示：**
-
-- `0 <= nums.length <= 105`
-- `-109 <= nums[i] <= 109`
-
-### 参考题解
-
-1. [官解](https://leetcode.cn/problems/longest-consecutive-sequence/solutions/276931/zui-chang-lian-xu-xu-lie-by-leetcode-solution)
-
-### 法一
-
-==:star: **核心思路： 哈希表 +   **:star:==
-
-注意!!! 是序列!! 不要求序列中的元素索引连续, 只要求序列值连续!!        
-
-**:key:  key：**
-
-- 用一个哈希表存储数组中的数，对于每个数val，用O(1)的时间查哈希表看是否存在val+1
-
-    - 如果存在，则while循环继续查哈希表看是否存在val+2，val+3······val+n
-    - 如果不存在，什么也不做
-
-
-【暴力】
-
-- 对于遍历的每个元素 x，在循环内部都要 while 找出以 x 为开头的连续序列。
-
-
-【优化】
-
-- 无需针对**每个元素**去找以其为开头的连续序列，这多了很多不必要的枚举。
-
-- 比如如果已知有一个 x,x+1,x+2,⋯,x+y 的连续序列，而我们每次遇到 x+1，x+2或者是x+y都重新开始尝试匹配找连续序列，那么得到的结果肯定不会优于枚举 x 为起点的答案，因此我们在外层循环的时候碰到这种情况跳过即可。 
-
-- 那么怎么判断是否跳过呢？每次在哈希表中检查是否存在 x−1 即可。 
-
-
-#### 代码
-
-```c++
-class Solution {
-public:
-    int longestConsecutive(vector<int>& nums) {
-        int maxLen = 0;
-        unordered_set<int> set;
-        for (int& x : nums) {
-            set.insert(x);
-        }
-        for (int& x : nums) {
-            // 对于 x, 找哈希表中是否存在x+1,x+2...
-            // 但是如果 x 存在前驱值 x-1, 那么不用在找, 直接continue
-            if (set.count(x - 1)) {
-                continue;
-            }
-            int len = 1; // 以 x 为起点的最长子序列的长度
-            while (set.count(++x)) {
-                len++;
-            } 
-            maxLen = max(len, maxLen);
-        }
-        return maxLen;
-    }
-};
-```
-
-#### 复杂度分析
-
-- 时间复杂度：O(n)  
-
-- 空间复杂度：O(n)
-
-### 法二
-
-==:star: **核心思路： dp  **:star:==
 
 # 回文子串子序列
 
 ## [:car: 647. 回文子串](https://leetcode.cn/problems/palindromic-substrings/)
 
-### **题意**
+### 题意
 
 给你一个字符串 `s` ，请你统计并返回这个字符串中 **回文子串** 的数目。
 
@@ -1316,7 +1385,7 @@ int extend(const string& s, int i, int j, int n) { //以s[i],s[j]为中心向两
 
 ## [:fire: 5. 最长回文子串](https://leetcode.cn/problems/longest-palindromic-substring/)
 
-### **题意**
+### 题意
 
 给你一个字符串 `s`，找到 `s` 中最长的回文子串。
 
@@ -2343,7 +2412,7 @@ int change(int amount, vector<int>& coins) {
 
 ### 参考题解
 
-1. [卡哥](https://leetcode.cn/problems/word-break/solutions/850456/dai-ma-sui-xiang-lu-139-dan-ci-chai-fen-50a1a)  步骤一dp定义和步骤二四很清晰 
+1. [卡哥](https://leetcode.cn/problems/word-break/solutions/850456/dai-ma-sui-xiang-lu-139-dan-ci-chai-fen-50a1a)  每一步都很清晰，详细讲了遍历顺序的问题。 
 
 ### 思路
 
@@ -2354,11 +2423,39 @@ int change(int amount, vector<int>& coins) {
 2. dp递推公式: 如果`子串s[j, i) == 单词`, 且`dp[j]=true`,则dp[i]=true
 3. dp数组初始化：`dp[0] = true; ` 为什么？？？
     - 因为背包刚好被一个物品装满时，剩下容量为0，根据dp公式，dp[0]当然要为true
-4. 遍历
+4. 遍历：因为求的是排列而不是组合，因此是外层遍历背包，内层遍历物品。
 
-#### 法一
+### 代码
 
-一开始就将所有wordDict中的单词存到uset中，在内层for中遍历子串起点：`for (int j = 0; j < i; ++j)`
+第一种写法：内层for通过遍历wordDict中的单词判断s[0,i)是否能被装满：`for (auto& str : wordDict)`
+
+```cpp
+bool wordBreak(string s, vector<string>& wordDict) {
+/*
+    字符串--背包，字典里的单词--物品
+    问题可以转换为：字典中的物品是否可以刚好装满背包（可以任意多次）。完全背包问题。
+*/ 
+    // dp定义：dp[i]表示字符串s[0,i-1]是否能被字典里的单词完整拆分
+    vector<bool> dp(s.size() + 1);
+    // 初始化：
+    dp[0] = true;
+    // 遍历: 
+    for (int i = 1; i <= s.size(); ++i) {
+        for (const string &str : wordDict) {
+            int wordLen = str.size();
+            if (i >= wordLen) {
+                // 尝试装str看是否能装满, 除了大小要合适之外，子串也要能对应上。
+                // 计算开始截取的下标start，s[0,start,i-1]，str.size() = i-1-start+1 = i-start
+                string partOfLast = s.substr(i - wordLen, wordLen);  
+                dp[i] = (dp[i - wordLen] && str == partOfLast) || dp[i];
+            }
+        }
+    }
+    return dp[s.size()];
+}
+```
+
+第二种写法：一开始就将所有wordDict中的单词存到uset中，在内层for中遍历子串起点：`for (int j = 0; j < i; ++j)`
 
 ```cpp
 bool wordBreak(string s, vector<string>& wordDict) {
@@ -2377,30 +2474,6 @@ bool wordBreak(string s, vector<string>& wordDict) {
             string partOfLast = s.substr(j, i - j);
             if (dp[j] && uset.count(partOfLast)) {
                 dp[i] = true;
-            }
-        }
-    }
-    return dp[s.size()];
-}
-```
-
-#### 法二
-
-内层for通过遍历wordDict中的单词判断s[0,i)是否能被装满：`for (auto& str : wordDict)`
-
-```c++
-bool wordBreak(string s, vector<string>& wordDict) {
-    vector<bool> dp(s.size() + 1);
-    
-    dp[0] = true; 
-    
-    for (int i = 1; i <= s.size(); ++i) {
-        for (auto& str : wordDict) {
-            int wordLen = str.size();  
-            if (i >= wordLen) {
-                string partOfLast = s.substr(i - wordLen, wordLen);  
-                dp[i] = (str == partOfLast && dp[i - wordLen]) || dp[i];
-                // 装str || 不装  （不装当前物品 拿其它物品装能装满也是true） 
             }
         }
     }
@@ -2557,14 +2630,6 @@ int climbStairs(int n, int m) {
 - `1 <= nums.length <= 100`
 - `0 <= nums[i] <= 400`
 
-### 思路
-
-==:star: **核心思路： dp   **:star:==
-
-**:x: careless | ignore :**
-
-- 注意nums.size()==1时不存在nums[1]，因此需要特判
-
 ### 代码
 
 原始版本
@@ -2572,15 +2637,17 @@ int climbStairs(int n, int m) {
 ```c++
 int rob(vector<int>& nums) {
     int n = nums.size();
-    // 1.dp[i]表示从[0,i]家进行偷盗，能偷到的最高金额
+    if (n <= 1) {
+        return nums[0];
+    }
+    // dp[i]表示截至走到第i家能获得的最高金额=max(偷第i家，不偷第i家)
     vector<int> dp(n);
-    // 2.递推公式: dp[i] = max(dp[i - 1], nums[i] + dp[i - 2]);
-    // 3.初始化
+    // 初始化
     dp[0] = nums[0];
-    if (n > 1) dp[1] = max(nums[1], nums[0]);
-    // 4.遍历
+    dp[1] = max(nums[0], nums[1]);
+    // 遍历
     for (int i = 2; i < n; ++i) {
-        dp[i] = max(dp[i - 1], nums[i] + dp[i - 2]);
+        dp[i] = max(dp[i - 2] + nums[i], dp[i - 1]); 
     }
     return dp[n - 1];
 }
@@ -2592,21 +2659,20 @@ dp状态压缩
 
 ```c++
 int rob(vector<int>& nums) {
-    // Attention1. 提前特判！！！
-    if (nums.size() == 1) return nums[0];
-    if (nums.size() == 2) return max(nums[0], nums[1]);
-    // 3.初始化
-    int dp0 = nums[0];
-    int dp1 = max(nums[1], nums[0]);
-    // 4.遍历
-    for (int i = 2; i < nums.size(); ++i) {
-        int dp2 = max(dp1, nums[i] + dp0); 
-        // Attention2. 这两行的顺序不能反！！！
-        dp0 = dp1; 
-        dp1 = dp2; 
+    int n = nums.size();
+    if (n <= 1) {
+        return nums[0];
     }
-    // Attention3. 不要return dp2 !!! 因为nums.size()==2时不会进for循环dp2就无法更新
-    return dp1;
+    int dp0 = nums[0];				//相当于dp[i-2]，要偷第i家
+    int dp1 = max(nums[0], nums[1]);//相当于dp[i-1]，不偷第i家
+    // dp表示截至走到第i家能获得的最高金额=max(偷第i家，不偷第i家)
+    int dp = max(dp0, dp1);
+    for (int i = 2; i < n; ++i) {
+        dp = max(dp0 + nums[i], dp1); // = max(偷第i家，不偷第i家)
+        dp0 = dp1;
+        dp1 = dp;
+    }
+    return dp;
 }
 ```
 
@@ -2658,34 +2724,35 @@ int rob(vector<int>& nums) {
 ```c++
 int rob(vector<int>& nums) {
     int n = nums.size();
-    // 1.dp[i]表示从[0,i]家进行偷盗，能偷到的最高金额
+    if (n <= 1) {
+        return nums[0];
+    }
+    // 1.dp定义：dp[i]表示截至走到第i家能获得的最高金额=max(偷第i家，不偷第i家)
     vector<int> dp(n);
-    // 2.递推公式: dp[i] = max(dp[i - 1], nums[i] + dp[i - 2]);
-    // 3.初始化
+    // 2.初始化
     dp[0] = nums[0];
-    if (n > 1) dp[1] = max(nums[1], nums[0]);
-    // 4.遍历
+    dp[1] = max(nums[0], nums[1]);
+    // 3.遍历
     for (int i = 2; i < n; ++i) {
-        dp[i] = max(dp[i - 1], nums[i] + dp[i - 2]);
+        dp[i] = max(dp[i - 2] + nums[i], dp[i - 1]); 
     }
-
-    // 5.进阶：打印路径
     
+    // 4.进阶：打印路径
     vector<int> path;
-    int first = lower_bound(dp.begin(), dp.end(), dp[nums.size() - 1]) - dp.begin();
-    // = 数组中第一个不小于指定元素(dp[nums.size() - 1])的索引位置
-    path.emplace_back(first);
-    while (dp[first] > nums[first]) {
-        // 说明dp[first]一定偷了当前家，由此能接着找偷的上一家（即第一个dp值等于dp[first] - nums[first]的）
-        first = lower_bound(dp.begin(), dp.end(), dp[first] - nums[first]) - dp.begin();
-        // 将偷的当前家存入路径
-        path.emplace_back(first);
+    // 4.1 找到偷的最后一家的索引, 函数返回数组中第一个不小于指定元素(第三个参数)的索引位置
+    int index = lower_bound(dp.begin(), dp.end(), dp[nums.size() - 1]) - dp.begin();
+    path.emplace_back(index);
+    // 4.2 从后往前逐个找偷的上一家
+    while (dp[index] > nums[index]) { // 如果dp[index] <= nums[index], 说明已经找完了
+        // 接着找偷的上一家（即第一个dp值 = dp[index]-nums[index]的）
+        index = lower_bound(dp.begin(), dp.end(), dp[index] - nums[index]) - dp.begin();
+        path.emplace_back(index);
     }
-    // 退出循环时dp[first] == nums[first]，即找到了开始偷的第一家时
+    // 退出循环时dp[index] == nums[index]
+    // 4.4 从后往前输出
     for (int i = path.size() - 1; i >= 0; i--) {
         cout << "nums[" << path[i] << "] = " << nums[path[i]] << endl;
     }
-
     return dp[n - 1];
 }
 ```
@@ -2698,7 +2765,7 @@ int rob(vector<int>& nums) {
 
 ## :fire:[121. 买卖股票的最佳时机](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/)
 
-### **题意**
+### 题意
 
 给定一个数组 `prices` ，它的第 `i` 个元素 `prices[i]` 表示一支给定股票第 `i` 天的价格。
 
@@ -2728,15 +2795,9 @@ int rob(vector<int>& nums) {
 - `1 <= prices.length <= 105`
 - `0 <= prices[i] <= 104`
 
-### 参考题解
-
-1. 
-
 ### 法一
 
 ==:star: **核心思路：贪心   **:star:==
-
-**:key:  key：**
 
 - 每一天都选择在这天之前的股票最低点卖出股票，看是否会比之前的最大利润还大
 - 每天我们都可以选择出售股票与否。在第 `i` 天，如果我们要在今天卖股票，什么时候买入能赚得最多呢？当然是之前价格最低的时候！
@@ -2831,11 +2892,264 @@ int maxProfit(vector<int>& prices) {
 
 - 空间复杂度：O(n) / O(1)
 
+## :fire:[122. 买卖股票的最佳时机 II](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/)
+
+### 题意
+
+给你一个整数数组 `prices` ，其中 `prices[i]` 表示某支股票第 `i` 天的价格。
+
+在每一天，你可以决定是否购买和/或出售股票。你在任何时候 **最多** 只能持有 **一股** 股票。你也可以先购买，然后在 **同一天** 出售。
+
+返回 *你能获得的 **最大** 利润* 。
+
+**示例 1：**
+
+```
+输入：prices = [7,1,5,3,6,4]
+输出：7
+解释：在第 2 天（股票价格 = 1）的时候买入，在第 3 天（股票价格 = 5）的时候卖出, 这笔交易所能获得利润 = 5 - 1 = 4。
+随后，在第 4 天（股票价格 = 3）的时候买入，在第 5 天（股票价格 = 6）的时候卖出, 这笔交易所能获得利润 = 6 - 3 = 3。
+最大总利润为 4 + 3 = 7 。
+```
+
+**示例 2：**
+
+```
+输入：prices = [1,2,3,4,5]
+输出：4
+解释：在第 1 天（股票价格 = 1）的时候买入，在第 5 天 （股票价格 = 5）的时候卖出, 这笔交易所能获得利润 = 5 - 1 = 4。
+最大总利润为 4 。
+```
+
+**示例 3：**
+
+```
+输入：prices = [7,6,4,3,1]
+输出：0
+解释：在这种情况下, 交易无法获得正利润，所以不参与交易可以获得最大利润，最大利润为 0。
+```
+
+ **提示：**
+
+- `1 <= prices.length <= 3 * 104`
+- `0 <= prices[i] <= 104`
+
+### 法一
+
+==:star: **核心思路：贪心   **:star:==
+
+画个折线图就很清晰了，只要股票呈上升趋势（prices[i - 1] < prices[i]），就计算此时的收益，并将其加到最终结果profit中。
+
+> 贪心: 每一步总是做出在当前看来最好的选择。和动态规划相比，它既不看前面（也就是说它不需要从前面的状态转移过来），也不看后面（无后效性，后面的选择不会对前面的选择有影响）。
+
+这道题 「贪心」 的地方在于，对于 「今天的股价 - 昨天的股价」，得到的结果有 3 种可能：① 正数，② 0，③负数。
+贪心算法的决策是： 只加正数 。     
+
+```cpp
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        int profit = 0;
+        for (int i = 1; i < n; ++i) {
+            if (prices[i - 1] < prices[i]) {
+                profit += prices[i] - prices[i - 1];
+            }
+        }
+        return profit;
+    }
+};
+```
+
+**复杂度分析**
+
+- 时间复杂度：O(n)  
+
+- 空间复杂度：O(n) / O(1)
+
+### 法二
+
+==:star: **核心思路：dp   **:star:==
+
+原始版本
+
+```c++
+int maxProfit(vector<int>& prices) {
+    int n = prices.size();
+    int maxprofit = 0; 
+    // 1.确定dp数组以及下标含义：dp[i][0],dp[i][1]分别表示第i天持有股票,不持有股票的最多现有现金
+    vector<vector<int>> dp(n, vector<int>(2));
+    // 2.递推公式：
+    // dp[i][0] = max(dp[i-1][0], -prices[i]);//维持持有股票的状态/当天才持有股票
+    // dp[i][1] = max(dp[i-1][1], dp[i-1][0]-prices[i]);//维持不持有股票的状态/当天才不持有股票
+    // 3.初始化
+    dp[0][0] = -prices[0];
+    dp[0][1] = 0;
+    // 4.遍历
+    for (int i = 1; i < n; ++i) {
+        dp[i][0] = max(dp[i - 1][0], -prices[i]); 
+        dp[i][1] = max(dp[i - 1][1], dp[i - 1][0] + prices[i]);
+    }
+    return dp[n-1][1];
+}
+```
+
+优化版本
+
+```c++
+int maxProfit(vector<int>& prices) {
+    int n = prices.size();
+    // dp1表示第i天持有股票能获得的最大利润
+    // dp2表示第i天不持有股票能获得的最大利润
+    int dp1 = -prices[0];
+    int dp2 = 0;
+    for (int i = 1; i < n; ++i) {
+        dp1 = max(dp1, dp2 - prices[i]);//维持持有股票的状态  /当天才持有股票
+        dp2 = max(dp2, dp1 + prices[i]);//维持不持有股票的状态/当天才不持有股票
+    }
+    return dp2;
+}
+```
+
+复杂度分析
+
+- 时间复杂度：O(n)  
+
+- 空间复杂度：O(n) / O(1)
+
+## :two:[123. 买卖股票的最佳时机 III](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iii/)
+
+### 题意
+
+给定一个数组，它的第 `i` 个元素是一支给定的股票在第 `i` 天的价格。
+
+设计一个算法来计算你所能获取的最大利润。你最多可以完成 **两笔** 交易。
+
+**注意：**你不能同时参与多笔交易（你必须在再次购买前出售掉之前的股票）。 
+
+**示例 1:**
+
+```
+输入：prices = [3,3,5,0,0,3,1,4]
+输出：6
+解释：在第 4 天（股票价格 = 0）的时候买入，在第 6 天（股票价格 = 3）的时候卖出，这笔交易所能获得利润 = 3-0 = 3 。
+     随后，在第 7 天（股票价格 = 1）的时候买入，在第 8 天 （股票价格 = 4）的时候卖出，这笔交易所能获得利润 = 4-1 = 3 。
+```
+
+**示例 2：**
+
+```
+输入：prices = [1,2,3,4,5]
+输出：4
+解释：在第 1 天（股票价格 = 1）的时候买入，在第 5 天 （股票价格 = 5）的时候卖出, 这笔交易所能获得利润 = 5-1 = 4 。   
+     注意你不能在第 1 天和第 2 天接连购买股票，之后再将它们卖出。   
+     因为这样属于同时参与了多笔交易，你必须在再次购买前出售掉之前的股票。
+```
+
+**示例 3：**
+
+```
+输入：prices = [7,6,4,3,1] 
+输出：0 
+解释：在这个情况下, 没有交易完成, 所以最大利润为 0。
+```
+
+**示例 4：**
+
+```
+输入：prices = [1]
+输出：0
+```
+
+ **提示：**
+
+- `1 <= prices.length <= 105`
+- `0 <= prices[i] <= 105`
+
+### 参考题解
+
+1. [代码随想录](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iii/solutions/552849/123-mai-mai-gu-piao-de-zui-jia-shi-ji-ii-zfh9)
+
+### 思路
+
+==:star: **核心思路：dp  **:star:==
+
+关键是分四个状态求dp以及初始化的问题（主要是第二次买卖的初始化）。
+
+第0天第二次买入操作，初始值是多少？第一次还没买入呢，怎么初始化第二次买入？
+
+—— 第二次买入依赖于第一次卖出的状态，其实就是第0天第一次买入又卖出再买入。
+
+### 代码
+
+```c++
+int maxProfit(vector<int>& prices) {
+    // 1. dp定义  
+    // dp[i][0]表示在第i天第一次  持有股票能获取的最大利润
+    // dp[i][1]表示在第i天第一次不持有股票能获取的最大利润
+    // dp[i][2]表示在第i天第二次  持有股票能获取的最大利润
+    // dp[i][3]表示在第i天第二次不持有股票能获取的最大利润
+    vector<vector<int>> dp(prices.size(), vector<int>(4));
+
+    // 2. 递推公式  
+    // dp[i][0] = max(保持 持有状态，当天才 持有) = max(dp[i-1][0], -prices[i])
+    // dp[i][1] = max(保持不持有状态，当天才不持有) = max(dp[i-1][1], dp[i-1][0] + prices[i])
+    // dp[i][2] = max(保持 持有状态，当天才 持有) = max(dp[i-1][2], dp[i-1][1] - prices[i])
+    // dp[i][3] = max(保持不持有状态，当天才不持有) = max(dp[i-1][3], dp[i-1][2] + prices[i])
+
+    // 3. 初始化
+    dp[0][0] = -prices[0];
+    dp[0][2] = -prices[0]; //关键！
+
+    // 4. 遍历
+    for (int i = 1; i < prices.size(); ++i) {
+        dp[i][0] = max(dp[i - 1][0], -prices[i]);
+        dp[i][1] = max(dp[i - 1][1], dp[i - 1][0] + prices[i]);
+        dp[i][2] = max(dp[i - 1][2], dp[i - 1][1] - prices[i]);
+        dp[i][3] = max(dp[i - 1][3], dp[i - 1][2] + prices[i]);
+
+    }
+    return dp[prices.size() - 1][3];
+}
+```
+
+状态压缩
+
+```cpp
+int maxProfit(vector<int>& prices) {
+    int dp0 = -prices[0]; // 第i天第一次  持有股票能获取的最大利润
+    int dp1 = 0;          // 第i天第一次不持有股票能获取的最大利润
+    int dp2 = -prices[0]; // 第i天第二次  持有股票能获取的最大利润
+    int dp3 = 0;          // 第i天第二次不持有股票能获取的最大利润
+    
+    for (int i = 1; i < prices.size(); ++i) {
+        dp3 = max(dp3, dp2 + prices[i]);
+        dp2 = max(dp2, dp1 - prices[i]);
+        dp1 = max(dp1, dp0 + prices[i]);
+        dp0 = max(dp0, -prices[i]); 
+    }
+    return dp3;
+}
+```
+
+其实这里就按从dp0\~dp3的顺序计算也行，为什么？
+
+dp0 = max(dp0, - prices[i]); 
+
+- 如果dp0取dp0，即保持持有状态，那么 dp1= max(dp1,  dp0 + prices[i]); 中dp0 + prices[i] 就是今天卖出。
+- 如果dp0取 - prices[i]，即今天买入股票，那么dp1 = max(dp1, dp0 + prices[i]); 中dp0+ prices[i]相当于是今天再卖出股票，一买一卖收益为0，对所得现金没有影响。等于没有操作，保持昨天卖出股票的状态。
+
+**复杂度分析**
+
+- 时间复杂度：O(n)  
+
+- 空间复杂度：O(n) / O(1)
+
 # 编辑距离
 
 ## :fire:[72. 编辑距离](https://leetcode.cn/problems/edit-distance/)
 
-### **题意**
+### 题意
 
 给你两个单词 `word1` 和 `word2`， *请返回将 `word1` 转换成 `word2` 所使用的最少操作数* 。
 
@@ -3077,9 +3391,11 @@ public:
 
 ### 代码
 
+==看清楚！matrix存放的是char类型的字符，而不是int！==
+
 ```c++
 int maximalSquare(vector<vector<char>>& matrix) {
-    int maxSideLength = 0;
+    int maxSide = 0;
     int m = matrix.size(); 
     int n = matrix[0].size(); 
     // 1.dp定义: dp[i][j]表示以(i,j)为右下角的只包含'1'的最大正方形的边长
@@ -3094,10 +3410,10 @@ int maximalSquare(vector<vector<char>>& matrix) {
             } else {
                 dp[i][j] = 1 + min(dp[i - 1][j - 1], min(dp[i][j - 1], dp[i - 1][j]));
             }
-            maxSideLength = max(maxSideLength, dp[i][j]);
+            maxSide = max(maxSide, dp[i][j]);
         }
     }
-    int maxSquare = maxSideLength * maxSideLength;
+    int maxSquare = maxSide * maxSide;
     return maxSquare;
 }
 ```
@@ -3236,13 +3552,13 @@ dp
 
 ```c++
 int uniquePaths(int m, int n) {
-    // 1.dp[i][j]表示到(i, j)有几条路径
+    // dp定义：dp[i][j]表示机器人走到(i,j)有多少种路径
     vector<vector<int>> dp(m, vector<int>(n));
-    // 2.递推公式: dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
-    // 3.初始化: 第一行和第一列都是1，初始化放在4.遍历逻辑中，也可以单独拿出来初始化
-    // 4.遍历
-    for (int i = 0; i < m; ++i) {
-        for (int j = 0; j < n; ++j) {
+    // 递推公式：dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
+    // 初始化：i=0||j=0时都只有一条路径，即往下或往右直走，dp[i][j]=1
+    // 遍历:
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
             if (i == 0 || j == 0) {
                 dp[i][j] = 1;
             } else {
@@ -3254,15 +3570,21 @@ int uniquePaths(int m, int n) {
 }
 ```
 
-dp优化：状态压缩
+dp状态压缩
 
 ```c++
 int uniquePaths(int m, int n) {
-    vector<int> dp(n);
-    dp[0] = 1;
-    for (int i = 0; i < m; ++i) { //滚动cnt次
-        for (int j = 1; j < n; ++j) {
-            dp[j] += dp[j - 1];
+    // 递推公式：当前格子的dp值 = 滚动前当前格子的值 + 左边格子滚动后的值
+    //  dp[j] += dp[j - 1]
+    // 初始化：i=0||j=0时都只有一条路径
+    // 遍历
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (i == 0 || j == 0) {
+                dp[j] = 1;
+            } else {
+                dp[j] += dp[j - 1];
+            }
         }
     }
     return dp[n - 1];
@@ -3301,119 +3623,9 @@ int uniquePaths(int m, int n) {
 
 - 空间复杂度：O(1)
 
-## :fire:[152. 乘积最大子数组](https://leetcode.cn/problems/maximum-product-subarray/)
+# 游戏
 
-### 题意
-
-给你一个整数数组 `nums` ，请你找出数组中乘积最大的非空连续子数组（该子数组中至少包含一个数字），并返回该子数组所对应的乘积。
-
-测试用例的答案是一个 **32-位** 整数。
-
-**示例 1:**
-
-```
-输入: nums = [2,3,-2,4]
-输出: 6
-解释: 子数组 [2,3] 有最大乘积 6。
-```
-
-**示例 2:**
-
-```
-输入: nums = [-2,0,-1]
-输出: 0
-解释: 结果不能为 2, 因为 [-2,-1] 不是子数组。
-```
-
-**提示:**
-
-- `1 <= nums.length <= 2 * 104`
-- `-10 <= nums[i] <= 10`
-- `nums` 的任何前缀或后缀的乘积都 **保证** 是一个 **32-位** 整数
-
-### 参考题解
-
-1. [画手大鹏](https://leetcode.cn/problems/maximum-product-subarray/solutions/7561/hua-jie-suan-fa-152-cheng-ji-zui-da-zi-xu-lie-by-g) 参考了一下思路
-
-### 思路
-
-**:key:  key：**
-
-- 由于存在负数，那么会导致最大的变最小的，最小的变最大的。因此还需要维护一个最小值 
-
-### 代码
-
-#### 第一版
-
-```c++
-int maxProduct(vector<int>& nums) {
-    int ans = nums[0];     
-    // 1.dp[i][0]表示以下标i为结尾的连续子数组的最大乘积, dp[i][1]表示··的最小乘积
-    vector<vector<int>> dp(nums.size(), vector<int>(2));
-    // 3.初始化
-    dp[0][0] = nums[0];
-    dp[0][1] = nums[0];
-    // 4.遍历
-    for (int i = 1; i < nums.size(); ++i) {
-        if (nums[i] < 0) {
-            dp[i][0] = max(dp[i - 1][1] * nums[i], nums[i]);
-            dp[i][1] = min(dp[i - 1][0] * nums[i], nums[i]);
-        } else {
-            dp[i][0] = max(dp[i - 1][0] * nums[i], nums[i]);
-            dp[i][1] = min(dp[i - 1][1] * nums[i], nums[i]);
-        }
-        ans = max(ans, dp[i][0]);
-    }
-}
-```
-
-#### 第二版（优化空间）
-
-```c++
-int maxProduct(vector<int>& nums) {
-    int ans = nums[0];     
-    // 3.初始化
-    int curMax = nums[0];
-    int curMin = nums[0];
-    // 4.遍历
-    for (int i = 1; i < nums.size(); ++i) {
-        if (nums[i] < 0) {
-            // 由于在计算curMin之前会更新curMax，而我们想要的是旧值，因此要暂存curMax
-            int preMax = curMax;
-            curMax = max(curMin * nums[i], nums[i]);
-            curMin = min(preMax * nums[i], nums[i]);
-        } else {
-            curMax = max(curMax * nums[i], nums[i]);
-            curMin = min(curMin * nums[i], nums[i]);
-        }
-    }
-    return ans;
-}
-```
-
-#### 第三版（精简代码）
-
-```c++
-int maxProduct(vector<int>& nums) {
-    int ans = nums[0];     
-    // 3.初始化
-    int curMax = nums[0];
-    int curMin = nums[0];
-    // 4.遍历
-    for (int i = 1; i < nums.size(); ++i) {
-        int preMax = curMax;
-        // 由于在计算curMin之前会更新curMax，而我们想要的是旧值，因此要暂存curMax
-        curMax = max(max(curMin * nums[i], curMax * nums[i]), nums[i]);
-        curMin = min(min(preMax * nums[i], curMin * nums[i]), nums[i]);
-        ans = max(ans, curMax);
-    }
-    return ans;
-}
-```
-
-
-
-## :fire:[55. 跳跃游戏](https://leetcode.cn/problems/jump-game/)
+## :two:[55. 跳跃游戏](https://leetcode.cn/problems/jump-game/)
 
 ### 题意
 
@@ -3448,43 +3660,67 @@ int maxProduct(vector<int>& nums) {
 
 ### 思路
 
-==:star: **核心思路：dp   **:star:==
+- 暴力：从位置 i 开始，判断从位置0~i-1跳，是否能跳到 i 。这样需嵌套for循环。
+- 优化：遍历nums，计算当前位置 i 能到达的最远的下标。如果出现有某个位置能到达的最远的下标 >= nums.size()-1，就说明可以跳到最后一个下标。这样只需一个for循环。
+- 进一步优化：状态压缩
 
-关键是dp定义，然后是各种边界判断。
+### 代码
+
+```c++
+bool canJump(vector<int>& nums) {
+    // dp定义：dp[i]表示是否能跳到下标i的位置
+    vector<int> dp(nums.size());
+    // 递推公式：如果 dp[j]==true 且 j + nums[j] >= i，dp[i] = true;
+    // 初始化
+    dp[0] = true;
+    for (int i = 1; i < nums.size(); ++i) {
+        for (int j = 0; j < i; ++j) {
+            if (dp[j] && j + nums[j] >= i) {
+                dp[i] = true;
+                break;
+            }
+        }
+    }
+    return dp[nums.size() - 1];
+
+}
+```
+
+优化：遍历nums，计算当前位置 i 能到达的最远的下标。如果出现有某个位置能到达的最远的下标 >= nums.size()-1，就说明可以跳到最后一个下标。这样只需一个for循环。
+
+```cpp
+bool canJump(vector<int>& nums) {
+    if (nums.size() <= 1) {
+        return true;
+    }
+    // dp定义：dp[i]表示从[0,i]的任意一点处出发，最远可以到哪
+    vector<int> dp(nums.size());
+    dp[0] = nums[0];
+    for (int i = 1; i < nums.size(); ++i) {
+        if (dp[i - 1] < i) {
+            return false;
+        }
+        // 当前位置 i 能到达的最远的下标，和前一个位置能到达的最远的下标有关
+        // 但如果前一个位置都到不了，当前位置就不用再看了，反正也到不了。因此在计算dp[i]之前需判断是否到的了i-1下标的位置
+        dp[i] = max(dp[i - 1], nums[i] + i); 
+        if (dp[i] >= nums.size() - 1) {
+            return true;
+        }
+    }
+    return false;
+}
+```
+
+进一步优化：状态压缩
 
 ```c++
 bool canJump(vector<int>& nums) {
     if (nums.size() <= 1) {
         return true;
-    } 
-    // 1.dp[i]: 从[0,i]的任意一点处出发，最远可以到哪
-    vector<int> dp(nums.size());
-    // 2.递推公式: dp[i] = max(dp[i - 1], i + nums[i]);
-    // 3.初始化
-    dp[0] = nums[0];
-    // 4.遍历
-    for (int i = 1; i < nums.size(); ++i) {
-        // 如果 i 都无法到达
-        if (dp[i - 1] < i) {
-            return false;
-        }
-        dp[i] = max(dp[i - 1], i + nums[i]);
-        if (dp[i] >= nums.size() - 1) {
-            return true;
-        }
     }
-    return false; // or return true;都行
-}
-```
-
-由于dp[i]之和前一个状态dp[i-1]有关，因此可以状态压缩：
-
-```c++
-bool canJump(vector<int>& nums) {
-    int dp = nums[0]; //dp表示当前位置能跳到的最远的位置
-    for (int i = 0; i < nums.size(); ++i) {
+    int dp = nums[0]; //表示能到达的最远下标
+    for (int i = 1; i < nums.size(); ++i) {
         if (dp < i) {
-            // 说明当前位置都到不了
             return false;
         }
         dp = max(dp, nums[i] + i);
@@ -3502,3 +3738,148 @@ bool canJump(vector<int>& nums) {
 
 - 空间复杂度：O(n) / O(1)
 
+# 树
+
+## :fire:[96. 不同的二叉搜索树](https://leetcode.cn/problems/unique-binary-search-trees/)
+
+### 题意
+
+给你一个整数 `n` ，求恰由 `n` 个节点组成且节点值从 `1` 到 `n` 互不相同的 **二叉搜索树** 有多少种？返回满足题意的二叉搜索树的种数。
+
+**示例 1：**
+
+![img](https://cdn.jsdelivr.net/gh/808bass666/picBed@main/202403261044676.jpeg)
+
+```
+输入：n = 3
+输出：5
+```
+
+**示例 2：**
+
+```
+输入：n = 1
+输出：1
+```
+
+**提示：**
+
+- `1 <= n <= 19`
+
+### 参考题解
+
+1. [笨猪爆破组](https://leetcode.cn/problems/unique-binary-search-trees/solutions/330990/shou-hua-tu-jie-san-chong-xie-fa-dp-di-gui-ji-yi-h)
+
+### 思路
+
+==:star: **核心思路：dp  **:star:==
+
+```c++
+int numTrees(int n) {
+    // 1.dp[i]表示由i个结点组成的二叉搜索树有多少种
+    vector<int> dp(n + 1); 
+    // 2.递推公式: dp[i] += dp[j] * dp[i - 1 - j];
+    // 3.dp初始化
+    dp[0] = 1; //空树也是二叉搜索树!!!
+    // 4.遍历
+    for (int i = 1; i <= n; i++) {
+        // 根占一个结点，剩下左右子共i-1个结点
+        for (int j = 0; j < i; ++j) {
+            dp[i] += dp[j] * dp[i - 1 - j];
+        }
+    }
+    return dp[n];
+}
+```
+
+### 复杂度分析
+
+- 时间复杂度：O(n^2^)  
+
+- 空间复杂度：O(n)
+
+## :fire:[337. 打家劫舍 III](https://leetcode.cn/problems/house-robber-iii/)
+
+### 题意
+
+小偷又发现了一个新的可行窃的地区。这个地区只有一个入口，我们称之为 `root` 。
+
+除了 `root` 之外，每栋房子有且只有一个“父“房子与之相连。一番侦察之后，聪明的小偷意识到“这个地方的所有房屋的排列类似于一棵二叉树”。 如果 **两个直接相连的房子在同一天晚上被打劫** ，房屋将自动报警。
+
+给定二叉树的 `root` 。返回 ***在不触动警报的情况下** ，小偷能够盗取的最高金额* 。
+
+ **示例 1:**
+
+![img](https://cdn.jsdelivr.net/gh/808bass666/picBed@main/202407231000580.jpeg)
+
+```
+输入: root = [3,2,3,null,3,null,1]
+输出: 7 
+解释: 小偷一晚能够盗取的最高金额 3 + 3 + 1 = 7
+```
+
+**示例 2:**
+
+![img](https://cdn.jsdelivr.net/gh/808bass666/picBed@main/202403301120582.jpeg)
+
+```
+输入: root = [3,4,5,1,3,null,1]
+输出: 9
+解释: 小偷一晚能够盗取的最高金额 4 + 5 = 9
+```
+
+**提示：**
+
+- 树的节点数在 `[1, 104]` 范围内
+- `0 <= Node.val <= 104`
+
+### 参考题解
+
+1. 
+
+### 法一
+
+==:star: **核心思路：『树形』『DP』   **:star:==
+
+**:key:  key：**
+
+- 『树形』『DP』：每一个节点能偷到的最大价值由偷与不偷左右子树的情况转移而来
+
+- 后序遍历，dp[i] = max(不偷当前结点，偷当前结点);
+    - 不偷当前结点，那就可以偷其左右子，但是到底偷不偷左右子还要取决于左右子树的最大收益，比如可能左子树的最大收益是不偷左子得到的。
+    - 偷当前结点，那就不能偷左右节点
+
+#### 代码
+
+```c++
+pair<int, int> postTraversal(TreeNode* root) {
+    // 1. 递归函数返回值：pair.first表示不偷当前节点能得到的最大价值，pair.second表示偷··· 
+    // 2. 递归结束条件：到空结点时
+    if(!root) return {0, 0};
+    // 3. 单层递归做啥事：求root的dp值 => 通过偷与不偷子节点能获取的收益来决定自己要不要偷
+    auto [notSteal_left, Steal_left] = postTraversal(root->left);   // 左
+    auto [notSteal_right, Steal_right] = postTraversal(root->right);// 右
+    // 不偷当前节点，此时最大价值考虑的是左/右整个两个子树的最大收益，而不单单是左右子这两个结点的，
+    // 因此不能写成 notsteal = Steal_left + Steal_right
+    int notsteal = max(notSteal_left, Steal_left) + max(notSteal_right, Steal_right);
+    // 偷当前节点，则其左右孩子都不能偷
+    int steal = root->val + notSteal_left + notSteal_right;
+    return {notsteal, steal};
+}
+int rob(TreeNode* root) {
+    auto [notSteal, Steal] = postTraversal(root);
+    return max(notSteal, Steal);
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：O(n)  
+
+- 空间复杂度：O(n)
+
+
+
+# 扔鸡蛋
+
+[扔鸡蛋问题_public static int eggdrop(int m, int n)-CSDN博客](https://blog.csdn.net/Oblak_ZY/article/details/124585317#comments_28600776)
