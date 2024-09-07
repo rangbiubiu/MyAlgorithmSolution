@@ -112,18 +112,19 @@ for (int j = coins[i - 1]; j <= amount; ++j) {
 
 ==:star: **核心思路：dp**:star:==
 
-关键是初始化。
+初始化要想清楚。
 
-```c++
+```cpp
 int climbStairs(int n) {
-    if (n < 2) return 1; //不然后面dp[2]会越界
-    // 1. dp[i]表示爬i阶有多少种方法
+    // dp定义：dp[i]表示爬到第i阶有多少种爬法。
     vector<int> dp(n + 1);
-    // 2. 递推公式: dp[i] = dp[i - 1] + dp[i - 2]
-    // 3. dp数组初始化
+    // 递推公式：爬到第i阶可以是从第i-1阶爬1阶到第i阶，也可以是从第i-2阶爬2阶到第i阶，dp[i] = dp[i - 1] + dp[i - 2]
+    // dp数组初始化
+    dp[0] = 1;
     dp[1] = 1;
-    dp[2] = 2;
-    for (int i = 3; i <= n; i++) {
+    // 爬到第2阶可以是从第1阶爬1阶到第i阶，也可以是从第2阶爬2阶到第i阶，2种爬法
+    // 遍历
+    for (int i = 2; i <= n; ++i) {
         dp[i] = dp[i - 1] + dp[i - 2];
     }
     return dp[n];
@@ -134,16 +135,20 @@ int climbStairs(int n) {
 
 ```c++
 int climbStairs(int n) {
-    if (n < 2) return 1;
-    int dp1 = 1; //爬1阶楼梯的方法数
-    int dp2 = 2; //爬2阶楼梯的方法数
-    for (int i = 3; i <= n; i++) {
-        int dpi = dp1 + dp2; //爬i阶楼梯的方法数，
-        dp1 = dp2;
-        dp2 = dpi;
+    // dp0 dp1 dpi
+    int dp0 = 1;
+    int dp1 = 1;
+    
+    int dpi = 1; 
+    //不能初始化为0，因为如果n=1，此时不会进下面的循环，直接return dpi就会返回0
+    
+    for (int i = 2; i <= n; ++i) {
+        dpi = dp0 + dp1;
+        dp0 = dp1;
+        dp1 = dpi;
     }
-    return dp2;
-}       
+    return dpi;
+}
 ```
 
 **复杂度分析**
@@ -1022,6 +1027,27 @@ int maxProduct(vector<int>& nums) {
     return ans;
 }
 ```
+
+上面的代码就完全是正确答案了，但是过不了力扣新加的那个[0,10,10,10,10,10,10,10,10,10,-10,10,10,10,10,10,10,10,10,10,0]测试用例（这人加测试用例之前都不看题目的吗？提示里面都说了`nums` 的任何前缀或后缀的乘积都 **保证** 是一个 **32-位** 整数。。。）
+
+```cpp
+int maxProduct(vector<int>& nums) {
+    double ans = (double)nums[0];
+    // 分别表示以下标i结尾的连续子数组的最大乘积、最小乘积 
+    double curMax = nums[0];
+    double curMin = nums[0];
+    for (int i = 1; i < nums.size(); ++i) {
+        double preMax = curMax;
+        // 由于在计算curMin之前会更新curMax，而我们想要的是旧值，因此要暂存curMax
+        curMax = max({(double)nums[i], curMax * (double)nums[i], curMin * (double)nums[i]});
+        curMin = min({(double)nums[i], curMin * (double)nums[i], preMax * (double)nums[i]});
+        ans = max(ans, curMax);
+    }
+    return ans;
+}
+```
+
+
 
 
 
@@ -2102,6 +2128,7 @@ int main() {
  :balloon:  **收获: **
 
 - 一般需要用`INT_MAX`的地方，最好换成`0x3f3f3f3f`，它比INT_MAX更好，不容易溢出
+    - 或者这里也可以初始化为amount+1（dp值最大是amount，因此凑不出时可以用无法取到的amount+1表示），不过最后返回时需要判断dp[amount] > amount ? -1 : dp[amount];
 
 **:x: careless | ignore :**
 
@@ -2115,8 +2142,12 @@ int main() {
 class Solution {
 public:
     int coinChange(vector<int>& coins, int amount) { 
+    /*
+        背包问题，硬币数量无限，因此可以重复取，属于完全背包问题。
+    */ 
         int n = coins.size();
         // dp[i][j]: use [0, i - 1] to get amount = j, min number
+        // 如果coins[0,i-1]装不满容量为j的背包，那么dp[i][j]应为最大值（如果用INT_MAX会溢出），因此初始值不是0
         vector<vector<int>> dp(n + 1, vector<int>(amount + 1, 0x3f3f3f3f)); 
         // 初始化：
         // i=0时，dp[0][j]: use [空集]  to get amount = j, min number=0x3f3f3f3f
@@ -2211,13 +2242,13 @@ for (int j = coins[i - 1]; j <= amount; ++j) {
 }
 ```
 
-因为如果写成这样，那么对于容量 < coins[i - 1]的背包，就无法计算到dp值。
+一维能写成这样是因为一维是滚动刷新的，如果容量 < coins[i - 1]，那就不刷新即可，即还是滚动前的值（本来也装不了这个物品）。
+
+而二维dp如果写成这样，那么对于容量 < coins[i - 1]的背包，就无法计算到dp值。
 
 >比如coins={1,2,5}, amount=11时，
 >
 >i=2,j=1时, dp\[2][1]表示 use [0,1] to get amount = 1, 此时如果按这样写，由于背包容量1<coins[1], 因此就不会计算dp\[2][1]，仍为无穷大。实际上dp\[2][1]=1
-
-而一维的是滚动刷新的，如果容量 < coins[i - 1]，那就不刷新即可，即还是滚动前的值（本来也装不了这个物品）。
 
 ### 一维dp
 
@@ -3202,7 +3233,7 @@ exection -> execution (插入 'u')
 
 :heavy_check_mark:  **answer:** 
 
-1. 最好不要！你可能想写成这样：
+1. 可以，但最好不要这样做，会更麻烦。你可能想写成这样：
 
     ```cpp
     int minDistance(string word1, string word2) {
@@ -3280,11 +3311,14 @@ public:
                 } else {
                 // 这里最好自己在脑子里面画出一个二维dp数组的图，或者手动画出来，不要凭空想
                 /*
-                      h  o  r  
-                    r    2  2
-                    o    1  2
+                        h  o  r 
+                      0 1  2  3 
+                    r 1 1  2  2
+                    o 2 2  1  2
                 */
-                    dp[i][j] = 1 + min(dp[i - 1][j - 1], min(dp[i - 1][j], dp[i][j - 1]));
+                    dp[i][j] = 1 + min({dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]});
+                    // 分别对应替换、插入、插入操作，这里的插入也可以是删除，都是一样的，只不过在不同的串上做操作
+                    // 这里和1143不一样，这里不能省略dp[i - 1][j - 1]，看上面几行举的例子中(1,1)的计算就能知道
                 }
             }
         }
